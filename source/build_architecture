@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# créer le namespace hote1
+ip netns add hote1
+# créer le switche
+ovs-vsctl add-br switchipv6
+# créer le lien
+ip link add hote1-eth0 type veth peer name bridge_ipv6
+# accrocher le lien au namespace
+ip link set hote1-eth0 netns hote1
+# connecter le lien au switch
+ovs-vsctl add-port switchipv6 bridge_ipv6
+# activer les interfaces
+ip link set dev bridge_ipv6 up
+ip link set dev switchipv6 up
+ip netns exec hote1 ip link set dev lo up
+ip netns exec hote1 ip link set dev hote1-eth0 up
+
+# ajouter les @ipvx
+#ip a add 2001:2:3:4501:48a7:631f:b007:3e71/64  dev switchipv6
+ip address add 192.168.100.130/24 dev switchipv6
+
+# activer les routage
+ip netns exec hote1 sysctl net.ipv4.conf.all.forwarding=1
+sysctl net.ipv4.conf.all.forwarding=1
