@@ -17,7 +17,6 @@ ip netns exec hote1 ip link set dev lo up
 ip netns exec hote1 ip link set dev hote1-eth0 up
 
 # ajouter les @ipvx
-#ip a add 2001:2:3:4501:48a7:631f:b007:3e71/64  dev switchipv6
 ip address add 192.168.100.130/24 dev switchipv6
 
 # activer les routage
