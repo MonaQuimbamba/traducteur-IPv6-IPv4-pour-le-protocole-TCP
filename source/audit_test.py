@@ -20,7 +20,7 @@ def traiter_packet(p):
     #dig -t a dns.google +short
 
     #Netfilter
-    #sudo iptables -t mangle -A PREROUTING -p tcp --sport 7890 -j NFQUEUE --queue-num 0
+    #sudo iptables -t mangle -A PREROUTING -p tcp --dport 7890 -j NFQUEUE --queue-num 0
     #sudo ip6tables -t mangle -A PREROUTING -i switchipv6 -p tcp --dport 7890 -j NFQUEUE --queue-num 0
 
     # socat - tcp6-listen:7890
