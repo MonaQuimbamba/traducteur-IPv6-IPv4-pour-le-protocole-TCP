@@ -6,11 +6,11 @@ from scapy.all import *
 
 
 def traiter_packet(p):
-    if IPv6 in p:
-        if TCP in p:
+    if TCP in p:
+        if p[IP].dst=='8.8.8.8':
             p.show2()
 
-
+    # sudo ip a add 10.188.12.200/16 dev switchipv6
     ## dig ipv4 to ipv6
     # dig -x 74.125.236.167 +short
     # dig -t aaaa dns.google +short
@@ -24,7 +24,7 @@ def traiter_packet(p):
     #sudo ip6tables -t mangle -A PREROUTING -i switchipv6 -p tcp --dport 7890 -j NFQUEUE --queue-num 0
 
     # socat - tcp6-listen:7890
-    # socat - tcp6:[2001:41d0:2:eb43::b7f9:7a68]:7890
+    # socat - tcp6:[2001:4860:4860::8844]:7890
     # socat - tcp6:[fe80::e02b:17ff:fe97:db47%eth0]:7890
 
 
@@ -37,4 +37,4 @@ def traiter_packet(p):
 
     # recuperer les ethernet @
     # sudo ip netns exec hote1 ip a show dev <interface> | grep "ether" | cut -b 16-33
-sniff(count=0,prn=traiter_packet,iface=["switchipv6"])
+sniff(count=0,prn=traiter_packet,iface=["wlp0s20f3"])

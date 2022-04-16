@@ -14,38 +14,43 @@ def traite_paquet(payload):
     if (premier_quartet == '4') :
         # paquet IPv4
         pkt = IP(data)
+        #cmd = subprocess.Popen("ip a show dev switchipv6 | grep 'ether' | cut -b 16-33", shell=True,stdout=subprocess.PIPE)
+        #(addr_ether_src, ignorer) = cmd.communicate()
+        #ether=Ether()
+        #ether.dst= 'ff:ff:ff:ff:ff:ff'
+        #ether.src=str(addr_ether_src.decode()).strip()
+        #ether.type=0x800
+        print(" ici ")
     else:
         # paquet IPv6 to ipv4
         pkt = IPv6(data)
-        cmd = subprocess.Popen("sudo ip netns exec hote1 ip a show dev hote1-eth0 | grep 'ether' | cut -b 16-33", shell=True,stdout=subprocess.PIPE)
-        (addr_ether_src, ignorer) = cmd.communicate()
-        cmd = subprocess.Popen("ip a show dev switchipv6 | grep 'ether' | cut -b 16-33", shell=True,stdout=subprocess.PIPE)
-        (addr_ether_dst, ignorer) = cmd.communicate()
-        ether=Ether()
-        ether.dst= str(addr_ether_dst.decode()).strip()
-        ether.src=str(addr_ether_src.decode()).strip()
-        ether.type=0x800
+
         addr_ipv4_dst =traducteur(pkt.dst,6)
         if addr_ipv4_dst:
             # sauvegarder la correspondance ipv6 to ipv4
             liste_addr.append((pkt.dst,addr_ipv4_dst))
-            cmd = subprocess.Popen("ip a show dev switchipv6 | grep 'inet ' | cut -b 10-24", shell=True,stdout=subprocess.PIPE)
-            (addr_ipv4_src, ignorer) = cmd.communicate()
-
+            #cmd = subprocess.Popen("ip a show dev switchipv6 | grep 'inet ' | cut -b 10-22", shell=True,stdout=subprocess.PIPE)
+            #(addr_ipv4_src, ignorer) = cmd.communicate()
+            addr_ipv4_src='10.188.12.200'
             ip4 = IP()
             ip4.dst=addr_ipv4_dst
             ip4.src=str(addr_ipv4_src.decode()).strip()
             # faire le paquet
-            pkt4=ether/ip4/pkt[TCP]
-
+            pkt[TCP].sport=pkt[TCP].dport
+            pkt[TCP].dport=80
+            pkt4=ip4/pkt[TCP]
+            del pkt4[IP].chksum
+            #del pkt4[TCP].chksum
             pkt4.show2()
             # si modifie : le paquet est remis MODIFIE dans la pile TCP/IP et poursuit sa    route
             payload.set_verdict_modified(nfqueue.NF_ACCEPT, bytes(pkt4), len(pkt4))
-            ## pour envoyer un datagramme IP sur l'interface eth0
+            ## pour envoyer un datagramme IP sur l'interface wlp0s20f3
             send(pkt4,iface="wlp0s20f3")
         else:
             # si rejete : le paquet est rejeté
             payload.set_verdict(nfqueue.NF_DROP)
+
+
 
     #pkt.show()
     # accepte le paquet : le paquet est remis dans la pile TCP/IP et poursuit sa route

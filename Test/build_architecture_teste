@@ -1,0 +1,14 @@
+#!/bin/bash
+
+
+ip netns add rout2
+ovs-vsctl add-br resB
+# configurer rout2
+ip link add rout2-eth0 type veth peer name resB-rout2
+ip link set rout2-eth0 netns rout2
+ovs-vsctl add-port resB resB-rout2
+ip link set dev resB-rout2 up
+ip netns exec rout2 ip link set dev lo up
+ip netns exec rout2 ip link set dev rout2-eth0 up
+#ip netns exec rout2 ip a add dev rout2-eth0 172.16.1.254/24
+ip netns exec rout2 sysctl net.ipv4.conf.all.forwarding=1
