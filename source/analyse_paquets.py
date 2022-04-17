@@ -30,11 +30,15 @@ def traite_paquet(payload):
             (addr_ipv6_dst, ignorer) = cmd.communicate()
             addr_ipv6_dst= str(addr_ipv6_dst.decode()).strip()
             add_ipv6_src=""
+            port_dst =0
             for addr in liste_addr:
                 if addr[1]== addr_ipv4_src:
                     add_ipv6_src = addr[0]
+                    port_dst=int(addr[2])
                     break
 
+            pkt[TCP].dport = port_dst
+            pkt[TCP].sport=7890
             pkt6 = IPv6(dst=addr_ipv6_dst, src = add_ipv6_src)
             pkt6 = ether/pkt6/pkt[TCP]
             del pkt6[IPv6].chksum
@@ -49,14 +53,15 @@ def traite_paquet(payload):
     else:
         # paquet IPv6 to ipv4
         pkt = IPv6(data)
-        pkt.show()
+        #pkt.show()
         addr_ipv4_dst =traducteur(pkt.dst,6)
         if addr_ipv4_dst:
             # sauvegarder la correspondance ipv6 to ipv4
-            liste_addr.append((pkt.dst,addr_ipv4_dst))
+            liste_addr.append((pkt.dst,addr_ipv4_dst, pkt[TCP].sport))
             ## récuperer @ ipv4 de la machine hote
-            cmd = subprocess.Popen("ip a show dev %s | grep 'inet ' | cut -b 10-22"%interface, shell=True,stdout=subprocess.PIPE)
+            cmd = subprocess.Popen("ip a show dev %s | grep 'inet ' | cut -b 10-21"%interface, shell=True,stdout=subprocess.PIPE)
             (addr_ipv4_src, ignorer) = cmd.communicate()
+
             #addr_ipv4_src=str(addr_ipv4_src.decoe()).strip()
             ip4 = IP()
             ip4.dst=addr_ipv4_dst
@@ -64,7 +69,6 @@ def traite_paquet(payload):
             # faire le paquet
             pkt[TCP].sport=pkt[TCP].dport
             pkt[TCP].dport=80
-            #pkt[TCP].flags='S'
             pkt4=ip4/pkt[TCP]
             del pkt4[IP].chksum
             del pkt4[TCP].chksum
@@ -72,9 +76,6 @@ def traite_paquet(payload):
             # si modifie : le paquet est remis MODIFIE dans la pile TCP/IP et poursuit sa    route
             payload.set_verdict_modified(nfqueue.NF_ACCEPT, bytes(pkt4), len(pkt4))
             ## pour envoyer un datagramme IP sur l'interface wlp0s20f3
-            #
-            #rep=sr1(pkt4,timeout=3,iface=interface)
-
             send(pkt4,iface=interface)
 
         else:
