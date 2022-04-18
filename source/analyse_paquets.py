@@ -14,6 +14,7 @@ def traite_paquet(payload):
     if (premier_quartet == '4') :
         # paquet IPv4
         pkt = IP(data)
+
         addr_ipv4_src = pkt.src
         if addr_ipv4_src in [ str(addr[1]) for addr in liste_addr ]:
             #Partie Ethernet
@@ -53,7 +54,6 @@ def traite_paquet(payload):
     else:
         # paquet IPv6 to ipv4
         pkt = IPv6(data)
-        #pkt.show()
         addr_ipv4_dst =traducteur(pkt.dst,6)
         if addr_ipv4_dst:
             # sauvegarder la correspondance ipv6 to ipv4
@@ -61,8 +61,6 @@ def traite_paquet(payload):
             ## récuperer @ ipv4 de la machine hote
             cmd = subprocess.Popen("ip a show dev %s | grep 'inet ' | cut -b 10-21"%interface, shell=True,stdout=subprocess.PIPE)
             (addr_ipv4_src, ignorer) = cmd.communicate()
-
-            #addr_ipv4_src=str(addr_ipv4_src.decoe()).strip()
             ip4 = IP()
             ip4.dst=addr_ipv4_dst
             ip4.src=str(addr_ipv4_src.decode()).strip()
@@ -75,25 +73,16 @@ def traite_paquet(payload):
             pkt4.show2()
             # si modifie : le paquet est remis MODIFIE dans la pile TCP/IP et poursuit sa    route
             payload.set_verdict_modified(nfqueue.NF_ACCEPT, bytes(pkt4), len(pkt4))
-            ## pour envoyer un datagramme IP sur l'interface wlp0s20f3
             send(pkt4,iface=interface)
-
         else:
             # si rejete : le paquet est rejeté
             payload.set_verdict(nfqueue.NF_DROP)
-
-
-
-    #pkt.show()
-    # accepte le paquet : le paquet est remis dans la pile TCP/IP et poursuit sa route
-    #payload.set_verdict(nfqueue.NF_ACCEPT)
-
-
 
 def traducteur(ipx,type):
     if type==4:
         cmd = subprocess.Popen("dig -x %s +short"%ipx, shell=True,stdout=subprocess.PIPE)
         (dns, ignorer) = cmd.communicate()
+
         cmd = subprocess.Popen("dig -t aaaa %s +short"%str(dns.decode()).strip(), shell=True,stdout=subprocess.PIPE)
         (addr_ipv6, ignorer) = cmd.communicate()
         return addr_ipv6.decode().split("\n")[0]
@@ -102,11 +91,7 @@ def traducteur(ipx,type):
         (dns, ignorer) = cmd.communicate()
         cmd = subprocess.Popen("dig -t a %s +short"%str(dns.decode()).strip(), shell=True,stdout=subprocess.PIPE)
         (addr_ipv4, ignorer) = cmd.communicate()
-        #print(repr(addr_ipv4.decode()))
         return addr_ipv4.decode().split("\n")[0]
-
-
-
 
 interface="wlp0s20f3" #input("Entrer le nom de l'interface")
 q = nfqueue.queue()
