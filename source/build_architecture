@@ -16,9 +16,7 @@ ip link set dev switchipv6 up
 ip netns exec hote1 ip link set dev lo up
 ip netns exec hote1 ip link set dev hote1-eth0 up
 
-# activer les routage
-ip netns exec hote1 sysctl net.ipv4.conf.all.forwarding=1
-sysctl net.ipv4.conf.all.forwarding=1
+
 
 
 
@@ -38,4 +36,13 @@ ip address add 172.16.1.252/24 dev resB
 ip netns exec server ip a add dev server-eth0 172.16.1.254/24
 ip netns exec server ip a add dev server-eth0 3001:1030:5329:6d2c:211:deff:fead:beef/64
 ip netns exec server ip r add default via 172.16.1.252
+
+# activer les routage
+ip netns exec hote1 sysctl net.ipv4.conf.all.forwarding=1
 sysctl net.ipv4.conf.all.forwarding=1
+
+# activer les régles du firewall
+
+iptables -t mangle -A PREROUTING -p tcp --dport 7890 -j NFQUEUE --queue-num 0
+ip6tables -t mangle -A PREROUTING -i switchipv6 -p tcp --dport 7890 -j NFQUEUE --queue-num 0
+iptables -t mangle -A PREROUTING -i resB -p tcp --sport 7890 -j NFQUEUE --queue-num 0

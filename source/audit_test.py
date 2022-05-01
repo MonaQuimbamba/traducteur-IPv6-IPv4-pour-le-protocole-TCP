@@ -21,15 +21,15 @@ def traiter_packet(p):
 
     #Netfilter
     #sudo iptables -t mangle -A PREROUTING -p tcp --dport 7890 -j NFQUEUE --queue-num 0
-    #sudo iptables -t mangle -A PREROUTING -i switchipv6 -p tcp --dport 7890 -j NFQUEUE --queue-num 0
+    #sudo ip6tables -t mangle -A PREROUTING -i switchipv6 -p tcp --dport 7890 -j NFQUEUE --queue-num 0
     #sudo iptables -t mangle -A PREROUTING -i resB -p tcp --sport 7890 -j NFQUEUE --queue-num 0
 
     # socat - tcp6-listen:7890
     # socat - tcp6:[2001:4860:4860::8844]:7890 # google
     # socat - tcp6:[2620:4d:4000:6259:7:1:0:1]:7890 # startpage
     # socat - tcp6:[2607:5300:60:5c::1]:7890  # p-fb
-    # socat - tcp6:[3001:1030:5329:6d2c:211:deff:fead:beef]:7890  # client 
-    # socat - tcp-listen:7890 server
+    # socat - tcp6:[3001:1030:5329:6d2c:211:deff:fead:beef]:7890  # client
+    # socat - tcp-listen:7890 #server
     # socat - tcp6:[fe80::e02b:17ff:fe97:db47%eth0]:7890
 
     # find dns of server

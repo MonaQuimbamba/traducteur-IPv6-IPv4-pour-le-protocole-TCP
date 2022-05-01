@@ -16,6 +16,7 @@ def traite_paquet(payload):
         # paquet IPv4
         pkt = IP(data)
         addr_ipv4_src = pkt.src
+        pkt.show()
         if addr_ipv4_src == liste_addr[0][1]: # pour les serveur externe sur un netns avec socat
             #Partie Ethernet
             cmd = subprocess.Popen("ip netns exec hote1 ip a show dev hote1-eth0 | grep 'ether' | cut -b 16-33", shell=True,stdout=subprocess.PIPE)
@@ -80,28 +81,27 @@ def traite_paquet(payload):
     else:
         # paquet IPv6 to ipv4
         pkt = IPv6(data)
-        if pkt.dst in [ str(addr[0]) for addr in liste_addr ]: # pour les serveur externe sur un netns
+        if pkt.dst == liste_addr[0][0]: # pour les serveur externe sur un netns
             ether=Ether()
             cmd = subprocess.Popen("ip netns exec server ip a show dev server-eth0 | grep 'ether' | cut -b 16-33", shell=True,stdout=subprocess.PIPE)
             (addr_ether_dst, ignorer) = cmd.communicate()
             ether.dst= str(addr_ether_dst.decode()).strip()
-            #ether.dst= "f6:19:e6:14:08:5a"
             ether.type=0x800
             cmd = subprocess.Popen("ip a show dev resB | grep 'ether' | cut -b 16-33", shell=True,stdout=subprocess.PIPE)
             (addr_ether_src, ignorer) = cmd.communicate()
             ether.src=str(addr_ether_src.decode()).strip()
-            cmd = subprocess.Popen("ip a show dev resB | grep 'inet ' | cut -b 10-21", shell=True,stdout=subprocess.PIPE)
+            cmd = subprocess.Popen("ip a show dev resB | grep 'inet '", shell=True,stdout=subprocess.PIPE)
             (addr_ipv4_src, ignorer) = cmd.communicate()
             ip4 = IP()
             addr_ipv4_dst=liste_addr[0][1]
             ip4.dst=addr_ipv4_dst
-            ip4.src=str(addr_ipv4_src.decode()).strip()
+            ip4.src=str(addr_ipv4_src.decode()).strip().split(" ")[1].split("/")[0]
             # faire le paquet
             pkt[TCP].dport=liste_addr[0][2]
             pkt4=ether/ip4/pkt[TCP]
             del pkt4[IP].chksum
             del pkt4[TCP].chksum
-            #pkt4.show2()
+            pkt4.show2()
             print(" connexion etape : ",pkt4[TCP].flags)
             payload.set_verdict_modified(nfqueue.NF_ACCEPT, bytes(pkt4), len(pkt4))
             sendp(pkt4,iface="resB")
@@ -113,11 +113,11 @@ def traite_paquet(payload):
                 # sauvegarder la correspondance ipv6 to ipv4 (ip6,ip4,port)
                 liste_addr.append((pkt.dst,addr_ipv4_dst, pkt[TCP].sport))
                 ## récuperer @ ipv4 de la machine hote
-                cmd = subprocess.Popen("ip a show dev %s | grep 'inet ' | cut -b 10-21"%interface, shell=True,stdout=subprocess.PIPE)
+                cmd = subprocess.Popen("ip a show dev %s | grep 'inet '"%interface, shell=True,stdout=subprocess.PIPE)
                 (addr_ipv4_src, ignorer) = cmd.communicate()
                 ip4 = IP()
                 ip4.dst=addr_ipv4_dst
-                ip4.src=str(addr_ipv4_src.decode()).strip()
+                ip4.src=str(addr_ipv4_src.decode()).strip().split(" ")[1].split("/")[0]
                 # faire le paquet
                 pkt[TCP].sport=pkt[TCP].dport
                 pkt[TCP].dport=80
@@ -137,7 +137,6 @@ def traducteur(ipx,type):
     if type==4:
         cmd = subprocess.Popen("dig -x %s +short"%ipx, shell=True,stdout=subprocess.PIPE)
         (dns, ignorer) = cmd.communicate()
-
         cmd = subprocess.Popen("dig -t aaaa %s +short"%str(dns.decode()).strip(), shell=True,stdout=subprocess.PIPE)
         (addr_ipv6, ignorer) = cmd.communicate()
         return addr_ipv6.decode().split("\n")[0]
