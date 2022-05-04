@@ -148,7 +148,8 @@ def traducteur(ipx,type):
         (addr_ipv4, ignorer) = cmd.communicate()
         return addr_ipv4.decode().split("\n")[0]
 
-interface=input("Entrer le nom de l'interface de notre machine qui donne accès à l'internet")
+interface=input("Entrer le nom de l'interface de notre machine qui donne accès à l'internet:\n")
+print(" programme strating .... ")
 q = nfqueue.queue()
 q.open()
 q.unbind(socket.AF_INET6)
