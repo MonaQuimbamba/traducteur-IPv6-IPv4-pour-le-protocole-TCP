@@ -81,6 +81,7 @@ def traite_paquet(payload):
     else:
         # paquet IPv6 to ipv4
         pkt = IPv6(data)
+
         if pkt.dst == liste_addr[0][0]: # pour les serveur externe sur un netns
             ether=Ether()
             cmd = subprocess.Popen("ip netns exec server ip a show dev server-eth0 | grep 'ether' | cut -b 16-33", shell=True,stdout=subprocess.PIPE)
@@ -147,7 +148,7 @@ def traducteur(ipx,type):
         (addr_ipv4, ignorer) = cmd.communicate()
         return addr_ipv4.decode().split("\n")[0]
 
-interface="wlp0s20f3" #input("Entrer le nom de l'interface")
+interface=input("Entrer le nom de l'interface de notre machine qui donne accès à l'internet")
 q = nfqueue.queue()
 q.open()
 q.unbind(socket.AF_INET6)
