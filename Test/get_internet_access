@@ -1,0 +1,7 @@
+#!/bin/bash
+
+ip link set resB up
+ip address add 172.16.1.252/24 dev resB
+sysctl net.ipv4.conf.all.forwarding=1
+
+#iptables -t nat -A POSTROUTING -s 172.16.1.0/24 -j MASQUERADE

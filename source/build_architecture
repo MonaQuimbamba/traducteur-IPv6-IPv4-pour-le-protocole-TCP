@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# créer le namespace hote1
+ip netns add hote1
+# créer le switche
+ovs-vsctl add-br switchipv6
+# créer le lien
+ip link add hote1-eth0 type veth peer name bridge_ipv6
+# accrocher le lien au namespace
+ip link set hote1-eth0 netns hote1
+# connecter le lien au switch
+ovs-vsctl add-port switchipv6 bridge_ipv6
+# activer les interfaces
+ip link set dev bridge_ipv6 up
+ip link set dev switchipv6 up
+ip netns exec hote1 ip link set dev lo up
+ip netns exec hote1 ip link set dev hote1-eth0 up
+
+
+
+
+
+# faire le ntns pour le server
+ip netns add server
+# créer les switches
+ovs-vsctl add-br resB
+# configurer rout2
+ip link add server-eth0 type veth peer name resB-server
+ip link set server-eth0 netns server
+ovs-vsctl add-port resB resB-server
+ip link set dev resB-server up
+ip netns exec server ip link set dev lo up
+ip netns exec server ip link set dev server-eth0 up
+ip link set resB up
+ip address add 172.16.1.252/24 dev resB
+ip netns exec server ip a add dev server-eth0 172.16.1.254/24
+ip netns exec server ip a add dev server-eth0 3001:1030:5329:6d2c:211:deff:fead:beef/64
+ip netns exec server ip r add default via 172.16.1.252
+
+# activer les routage
+ip netns exec hote1 sysctl net.ipv4.conf.all.forwarding=1
+sysctl net.ipv4.conf.all.forwarding=1
+
+# activer les régles du firewall
+
+iptables -t mangle -A PREROUTING -p tcp --dport 7890 -j NFQUEUE --queue-num 0
+ip6tables -t mangle -A PREROUTING -i switchipv6 -p tcp --dport 7890 -j NFQUEUE --queue-num 0
+iptables -t mangle -A PREROUTING -i resB -p tcp --sport 7890 -j NFQUEUE --queue-num 0

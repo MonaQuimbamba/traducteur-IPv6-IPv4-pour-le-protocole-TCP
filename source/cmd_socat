@@ -1,0 +1,98 @@
+
+
+# socat - tcp6-listen:7890
+# socat - tcp6:[2001:4860:4860::8844]:7890 # google
+# socat - tcp6:[2620:4d:4000:6259:7:1:0:1]:7890 # startpage
+# socat - tcp6:[2607:5300:60:5c::1]:7890  # p-fb
+# socat - tcp6:[3001:1030:5329:6d2c:211:deff:fead:beef]:7890  # client
+# socat - tcp-listen:7890 #server
+# socat - tcp6:[fe80::e02b:17ff:fe97:db47%eth0]:7890
+
+
+
+
+###[ IP ]###
+  version   = 4
+  ihl       = 5
+  tos       = 0x0
+  len       = 60
+  id        = 1
+  flags     =
+  frag      = 0
+  ttl       = 64
+  proto     = tcp
+  chksum    = 0x5fe6
+  src       = 10.188.12.200
+  dst       = 198.245.60.92
+  \options   \
+###[ TCP ]###
+     sport     = 7890
+     dport     = http
+     seq       = 3512545913
+     ack       = 0
+     dataofs   = 10
+     reserved  = 0
+     flags     = S
+     window    = 64800
+     chksum    = 0xb808
+     urgptr    = 0
+     options   = [('MSS', 1440), ('SAckOK', ''), ('Timestamp', (1321338458, 0)), ('NOP', None), ('WScale', 7)]
+
+.
+Sent 1 packets.
+###[ IP ]###
+  version   = 4
+  ihl       = 5
+  tos       = 0x0
+  len       = 60
+  id        = 0
+  flags     = DF
+  frag      = 0
+  ttl       = 52
+  proto     = tcp
+  chksum    = 0x2be7
+  src       = 198.245.60.92
+  dst       = 10.188.12.200
+  \options   \
+###[ TCP ]###
+     sport     = http
+     dport     = 7890
+     seq       = 575428342
+     ack       = 3512545914
+     dataofs   = 10
+     reserved  = 0
+     flags     = SA
+     window    = 65160
+     chksum    = 0xac53
+     urgptr    = 0
+     options   = [('MSS', 1460), ('SAckOK', ''), ('Timestamp', (856645078, 1321338458)), ('NOP', None), ('WScale', 7)]
+
+(' connexion etape : ', <Flag 18 (SA)>)
+.
+Sent 1 packets.
+###[ IP ]###
+  version   = 4
+  ihl       = 5
+  tos       = 0x0
+  len       = 52
+  id        = 1
+  flags     =
+  frag      = 0
+  ttl       = 64
+  proto     = tcp
+  chksum    = 0x5fee
+  src       = 10.188.12.200
+  dst       = 198.245.60.92
+  \options   \
+###[ TCP ]###
+     sport     = 7890
+     dport     = http
+     seq       = 3512545914
+     ack       = 575428343
+     dataofs   = 8
+     reserved  = 0
+     flags     = A
+     window    = 507
+     chksum    = 0xd51c
+     urgptr    = 0
+     options   = [('NOP', None), ('NOP', None), ('Timestamp', (1321339115, 856645078))]
